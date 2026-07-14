@@ -1,1 +1,12 @@
+node_modules
+dist
 .DS_Store
+*.local
+.env
+.env.*
+!.env.example
+release/
+Downloads/*.dmg
+Downloads/*.zip
+public/downloads/*.dmg
+public/downloads/*.zip

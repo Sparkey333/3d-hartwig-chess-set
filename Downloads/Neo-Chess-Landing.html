@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Neo Chess — Local Mac setup & download</title>
+    <meta name="description" content="Neo Chess for this Mac — clear setup steps, Higgsfield key links, and ~/Downloads DMG refresh/open." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --bg: #07070c;
+        --panel: rgba(18, 18, 28, 0.72);
+        --text: #f4f1ea;
+        --muted: #9a96a8;
+        --accent: #4fd1c5;
+        --accent-2: #f0a35e;
+        --line: rgba(255, 255, 255, 0.08);
+      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        min-height: 100vh;
+        font-family: "IBM Plex Sans", system-ui, sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(ellipse 90% 60% at 10% 0%, rgba(79, 209, 197, 0.18), transparent 55%),
+          radial-gradient(ellipse 70% 50% at 90% 20%, rgba(240, 163, 94, 0.14), transparent 50%),
+          linear-gradient(180deg, #0c0c14 0%, #07070c 100%);
+      }
+      .wrap { width: min(1080px, calc(100% - 2rem)); margin: 0 auto; padding: 2rem 0 4rem; }
+      nav {
+        display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 3rem;
+      }
+      .logo {
+        display: flex; align-items: center; gap: 0.7rem; font-family: Outfit, sans-serif;
+        font-weight: 800; letter-spacing: -0.03em; font-size: 1.35rem; text-decoration: none; color: var(--text);
+      }
+      .mark {
+        width: 2.1rem; height: 2.1rem; display: grid; place-items: center; border-radius: 0.55rem;
+        background: linear-gradient(145deg, var(--accent), #2f855a); color: #04110f; font-size: 1.15rem;
+      }
+      .nav-links { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
+      .nav-links a { color: var(--muted); text-decoration: none; font-size: 0.92rem; }
+      .nav-links a:hover { color: var(--text); }
+      .hero { display: grid; gap: 1.1rem; max-width: 740px; margin-bottom: 2rem; }
+      h1 {
+        font-family: Outfit, sans-serif; font-size: clamp(2.4rem, 6.5vw, 4rem);
+        line-height: 0.98; letter-spacing: -0.045em; font-weight: 800;
+      }
+      h1 span {
+        background: linear-gradient(90deg, var(--accent), var(--accent-2));
+        -webkit-background-clip: text; background-clip: text; color: transparent;
+      }
+      .lede { color: var(--muted); font-size: 1.05rem; max-width: 40rem; line-height: 1.65; }
+      .cta-row { display: flex; flex-wrap: wrap; gap: 0.8rem; margin-top: 0.35rem; }
+      .btn {
+        display: inline-flex; align-items: center; gap: 0.55rem; padding: 0.9rem 1.25rem;
+        border-radius: 999px; border: 1px solid transparent; font-weight: 600; text-decoration: none;
+        cursor: pointer; font: inherit; color: inherit;
+      }
+      .btn:hover { transform: translateY(-2px); }
+      .btn-primary { background: linear-gradient(90deg, var(--accent), #38b2ac); color: #04110f; }
+      .btn-secondary { background: var(--panel); border-color: var(--line); color: var(--text); }
+      .panel {
+        margin-top: 1.5rem; padding: 1.5rem; border: 1px solid var(--line); border-radius: 1.25rem;
+        background: var(--panel); backdrop-filter: blur(14px);
+      }
+      .panel h2, .panel h3 {
+        font-family: Outfit, sans-serif; font-size: 1.25rem; margin-bottom: 0.85rem;
+      }
+      .downloads { display: grid; gap: 0.75rem; }
+      .download-item {
+        display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+        gap: 0.75rem; padding: 1rem 1.1rem; border-radius: 0.9rem;
+        background: rgba(255, 255, 255, 0.03); border: 1px solid var(--line);
+      }
+      .download-item p, .step p, .site-note { color: var(--muted); font-size: 0.88rem; line-height: 1.5; }
+      .meta { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem; color: var(--muted); font-size: 0.82rem; }
+      .chip { border: 1px solid var(--line); border-radius: 999px; padding: 0.3rem 0.65rem; }
+      .steps { list-style: none; display: grid; gap: 1rem; counter-reset: step; }
+      .step {
+        border: 1px solid var(--line); border-radius: 0.9rem; padding: 1rem 1.1rem;
+        background: rgba(255,255,255,0.02); counter-increment: step;
+      }
+      .step strong::before {
+        content: counter(step) ". ";
+        color: var(--accent); font-family: Outfit, sans-serif;
+      }
+      .step strong { display: block; font-family: Outfit, sans-serif; margin-bottom: 0.35rem; }
+      pre {
+        margin: 0.55rem 0; padding: 0.75rem 0.9rem; border-radius: 0.65rem;
+        background: #0b1220; border: 1px solid var(--line); overflow-x: auto;
+        font-size: 0.82rem; color: #d6f5ef;
+      }
+      .links { list-style: none; margin-top: 0.45rem; display: grid; gap: 0.35rem; }
+      .links a { color: var(--accent); text-decoration: none; }
+      .links a:hover { text-decoration: underline; }
+      .key-grid {
+        display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.75rem;
+      }
+      .key-card {
+        border: 1px solid var(--line); border-radius: 0.9rem; padding: 0.9rem 1rem;
+        background: rgba(255,255,255,0.02);
+      }
+      .key-card a { color: var(--accent); font-weight: 600; text-decoration: none; }
+      footer {
+        margin-top: 2.5rem; color: var(--muted); font-size: 0.82rem;
+        display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+      }
+      .status { margin-top: 0.75rem; color: var(--accent); font-size: 0.88rem; min-height: 1.2em; }
+      @media (max-width: 640px) {
+        .nav-links a:not(.btn) { display: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <nav>
+        <a class="logo" href="#top">
+          <span class="mark">♞</span>
+          Neo Chess
+        </a>
+        <div class="nav-links">
+          <a href="../index.html">Play web app</a>
+          <a href="#setup">Setup</a>
+          <a href="#keys">Keys</a>
+          <button type="button" class="btn btn-primary" id="nav-dmg">Refresh &amp; open DMG</button>
+        </div>
+      </nav>
+
+      <section class="hero" id="top">
+        <h1>Local Mac first. <span>Clear steps.</span></h1>
+        <p class="lede">
+          Packages always land in <strong>~/Downloads</strong> on this Mac. Click below to refresh the
+          DMG from the newest build and open it. Higgsfield Premium AI keys are optional — Procedural
+          and Curated skins work offline.
+        </p>
+        <div class="cta-row">
+          <button type="button" class="btn btn-primary" id="cta-dmg">↓ Refresh &amp; open Mac DMG</button>
+          <button type="button" class="btn btn-secondary" id="cta-zip">Download ZIP fallback</button>
+          <a class="btn btn-secondary" href="../index.html">Open web app</a>
+        </div>
+        <p class="status" id="status" aria-live="polite"></p>
+      </section>
+
+      <section class="panel" id="download">
+        <h2>macOS package → ~/Downloads</h2>
+        <div class="downloads">
+          <div class="download-item">
+            <div>
+              <strong>Neo-Chess-1.0.0-mac.dmg</strong>
+              <p>Cache-busted fetch → save to this Mac’s Downloads → open/mount.</p>
+            </div>
+            <button type="button" class="btn btn-primary" id="btn-dmg">Refresh &amp; open DMG</button>
+          </div>
+          <div class="download-item">
+            <div>
+              <strong>Neo-Chess-1.0.0-mac.zip</strong>
+              <p>Same app if Disk Image Mounter is blocked.</p>
+            </div>
+            <button type="button" class="btn btn-secondary" id="btn-zip">Download ZIP</button>
+          </div>
+        </div>
+        <div class="meta">
+          <span class="chip">Version 1.0.0</span>
+          <span class="chip">macOS 11+</span>
+          <span class="chip">Local Mac only for now</span>
+          <span class="chip">Unsigned — right‑click → Open</span>
+        </div>
+      </section>
+
+      <section class="panel" id="setup">
+        <h2>Local Mac setup — clear steps</h2>
+        <ol class="steps">
+          <li class="step">
+            <strong>Rebuild the Mac package on this machine</strong>
+            <p>From the Neo Chess project root, regenerate DMG/ZIP. Always copies to <code>~/Downloads</code> and project <code>Downloads/</code>.</p>
+            <pre><code>npm install
+npm run pack:mac</code></pre>
+            <ul class="links">
+              <li><a href="https://vite.dev/" target="_blank" rel="noopener">https://vite.dev/</a> — Vite tooling</li>
+            </ul>
+          </li>
+          <li class="step">
+            <strong>Refresh &amp; open the new DMG from ~/Downloads</strong>
+            <p>After pack (or the buttons above), open the fresh image. First launch: right-click Neo Chess.app → Open.</p>
+            <pre><code>open ~/Downloads/Neo-Chess-1.0.0-mac.dmg
+# or
+npm run open:dmg</code></pre>
+          </li>
+          <li class="step">
+            <strong>Install Neo Chess.app</strong>
+            <p>Drag Neo Chess.app into Applications (or keep it in Downloads).</p>
+          </li>
+          <li class="step">
+            <strong>Get Higgsfield API credentials (optional Premium AI)</strong>
+            <p>Live FLUX themes / avatars / replay need <strong>server-side</strong> credentials. Never use <code>VITE_*</code> — the official SDK blocks browsers.</p>
+            <ul class="links">
+              <li><a href="https://cloud.higgsfield.ai" target="_blank" rel="noopener">https://cloud.higgsfield.ai</a> — create KEY_ID:KEY_SECRET</li>
+              <li><a href="https://docs.higgsfield.ai" target="_blank" rel="noopener">https://docs.higgsfield.ai</a> — API docs</li>
+              <li><a href="https://github.com/higgsfield-ai/higgsfield-js" target="_blank" rel="noopener">https://github.com/higgsfield-ai/higgsfield-js</a> — JS SDK</li>
+              <li><a href="https://status.higgsfield.ai" target="_blank" rel="noopener">https://status.higgsfield.ai</a> — status</li>
+            </ul>
+            <pre><code>export HF_CREDENTIALS="KEY_ID:KEY_SECRET"
+npm run dev</code></pre>
+          </li>
+          <li class="step">
+            <strong>Or skip keys — Procedural / Curated skins</strong>
+            <p>In-app Premium → Board Theme Studio → Procedural or Curated (Hartwig-inspired). Fully offline on this Mac.</p>
+          </li>
+          <li class="step">
+            <strong>Play</strong>
+            <p>Open the .app, or run the web client. Legacy 3D Hartwig lives at <code>/legacy</code>.</p>
+            <pre><code>npm run dev
+# → http://localhost:5173</code></pre>
+            <ul class="links">
+              <li><a href="https://stockfishchess.org/" target="_blank" rel="noopener">https://stockfishchess.org/</a></li>
+              <li><a href="https://github.com/jhlywa/chess.js" target="_blank" rel="noopener">https://github.com/jhlywa/chess.js</a></li>
+              <li><a href="https://github.com/Clariity/react-chessboard" target="_blank" rel="noopener">https://github.com/Clariity/react-chessboard</a></li>
+            </ul>
+          </li>
+        </ol>
+      </section>
+
+      <section class="panel" id="keys">
+        <h3>Key sites (bookmark these)</h3>
+        <div class="key-grid">
+          <article class="key-card">
+            <a href="https://cloud.higgsfield.ai" target="_blank" rel="noopener">Higgsfield Cloud</a>
+            <p class="site-note">API keys — KEY_ID:KEY_SECRET</p>
+          </article>
+          <article class="key-card">
+            <a href="https://docs.higgsfield.ai" target="_blank" rel="noopener">Higgsfield Docs</a>
+            <p class="site-note">FLUX / Soul / DoP reference</p>
+          </article>
+          <article class="key-card">
+            <a href="https://github.com/higgsfield-ai/higgsfield-js" target="_blank" rel="noopener">higgsfield-js</a>
+            <p class="site-note">Server-only V2 SDK</p>
+          </article>
+          <article class="key-card">
+            <a href="https://status.higgsfield.ai" target="_blank" rel="noopener">Higgsfield Status</a>
+            <p class="site-note">Outages before debugging</p>
+          </article>
+          <article class="key-card">
+            <a href="https://stockfishchess.org/" target="_blank" rel="noopener">Stockfish</a>
+            <p class="site-note">Engine / analysis</p>
+          </article>
+          <article class="key-card">
+            <a href="https://github.com/jhlywa/chess.js" target="_blank" rel="noopener">chess.js</a>
+            <p class="site-note">Move validation</p>
+          </article>
+          <article class="key-card">
+            <a href="https://vite.dev/" target="_blank" rel="noopener">Vite</a>
+            <p class="site-note">Dev server + AI proxy</p>
+          </article>
+          <article class="key-card">
+            <a href="https://www.electronjs.org/docs/latest/" target="_blank" rel="noopener">Electron docs</a>
+            <p class="site-note">Optional desktop shell</p>
+          </article>
+        </div>
+      </section>
+
+      <footer>
+        <span>© 2026 Neo Chess · Local Mac workflow</span>
+        <span>Always → ~/Downloads for now</span>
+      </footer>
+    </div>
+
+    <script>
+      (function () {
+        var DMG = 'Neo-Chess-1.0.0-mac.dmg';
+        var ZIP = 'Neo-Chess-1.0.0-mac.zip';
+        var statusEl = document.getElementById('status');
+
+        function resolveHref(name) {
+          // Prefer sibling files when opened from ~/Downloads or project Downloads/
+          // Fallback to /downloads/ when served by Vite.
+          var sibling = './' + name;
+          var web = '../downloads/' + name;
+          var absolute = '/downloads/' + name;
+          if (location.protocol === 'file:') return sibling;
+          if (location.pathname.indexOf('/landing') !== -1) return '../downloads/' + name;
+          if (location.pathname.indexOf('/Downloads') !== -1) return './' + name;
+          return absolute;
+        }
+
+        function bust(url) {
+          return url + (url.indexOf('?') >= 0 ? '&' : '?') + 't=' + Date.now();
+        }
+
+        function setStatus(msg) {
+          if (statusEl) statusEl.textContent = msg;
+        }
+
+        function triggerDownload(url, filename) {
+          var a = document.createElement('a');
+          a.href = bust(url);
+          a.download = filename;
+          a.rel = 'noopener';
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+        }
+
+        function refreshAndOpenDmg() {
+          var href = resolveHref(DMG);
+          setStatus('Downloading fresh DMG to this Mac’s Downloads…');
+          triggerDownload(href, DMG);
+          setTimeout(function () {
+            setStatus('Opening DMG — if it does not mount, run: open ~/Downloads/' + DMG);
+            window.open(bust(href), '_blank', 'noopener,noreferrer');
+          }, 650);
+        }
+
+        function downloadZip() {
+          var href = resolveHref(ZIP);
+          setStatus('Downloading ZIP to this Mac’s Downloads…');
+          triggerDownload(href, ZIP);
+        }
+
+        ['nav-dmg', 'cta-dmg', 'btn-dmg'].forEach(function (id) {
+          var el = document.getElementById(id);
+          if (el) el.addEventListener('click', refreshAndOpenDmg);
+        });
+        ['cta-zip', 'btn-zip'].forEach(function (id) {
+          var el = document.getElementById(id);
+          if (el) el.addEventListener('click', downloadZip);
+        });
+      })();
+    </script>
+  </body>
+</html>
