@@ -65,15 +65,16 @@ export function LearnView() {
       </section>
 
       <section className="roadmap">
-        <h3>Roadmap</h3>
+        <h3>Phase status</h3>
         <ol>
-          <li>Multiplayer via WebSocket (real-time play)</li>
-          <li>Full Crazyhouse & Bughouse support</li>
-          <li>Opening explorer from aggregated games</li>
-          <li>Time-odds and piece-odds handicaps</li>
-          <li>Live Higgsfield AI integration for premium tiers</li>
-          <li>Mobile PWA with offline puzzle mode</li>
-          <li>USCF tournament registration integration</li>
+          <li>✅ Higgsfield AI proxy + OpenAI/procedural alternatives</li>
+          <li>✅ Hartwig theme upgrades + Neo asset studio</li>
+          <li>✅ Opening explorer seed + handicaps (piece/time odds)</li>
+          <li>✅ Puzzle arena + PWA shell</li>
+          <li>✅ Crazyhouse reserves/drops + Fog of War piece hiding</li>
+          <li>🔜 Multiplayer WebSocket + Bughouse</li>
+          <li>🔜 Aggregated online opening DB + USCF registration deep-links</li>
+          <li>🔜 Soul ID avatars + full image-to-video replay exports</li>
         </ol>
       </section>
     </div>

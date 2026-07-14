@@ -2,6 +2,9 @@ import { Chess, type Square, type Move } from 'chess.js';
 import type { VariantId } from '../types';
 
 const CENTER_SQUARES: Square[] = ['d4', 'd5', 'e4', 'e5'];
+const ALL_SQUARES = Array.from({ length: 8 }, (_, r) =>
+  Array.from({ length: 8 }, (_, c) => `${'abcdefgh'[c]}${8 - r}` as Square),
+).flat();
 
 export interface ExtendedGameState {
   chess: Chess;
@@ -11,16 +14,13 @@ export interface ExtendedGameState {
   crazyhouseReserves: { w: string[]; b: string[] };
 }
 
-export function createGame(variant: VariantId): ExtendedGameState {
+export function createGame(
+  variant: VariantId,
+  options?: { removeSquare?: Square | null },
+): ExtendedGameState {
   const chess = new Chess();
 
   if (variant === 'chess960') {
-    const backRank = shuffleBackRank();
-    chess.load(`rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/${backRank} w KQkq - 0 1`.replace(
-      'rnbqkbnr',
-      backRank.split('').reverse().join('').replace(/[a-h]/g, (c) => c.toUpperCase()),
-    ));
-    // Simpler approach: randomize via FEN manipulation
     const whiteBack = generate960BackRank();
     const blackBack = whiteBack.toLowerCase();
     const fen = `${blackBack}/pppppppp/8/8/8/8/PPPPPPPP/${whiteBack} w KQkq - 0 1`;
@@ -31,43 +31,44 @@ export function createGame(variant: VariantId): ExtendedGameState {
     }
   }
 
+  if (options?.removeSquare) {
+    chess.remove(options.removeSquare);
+  }
+
+  const fog = new Set<string>();
+  if (variant === 'neoFog') {
+    for (const sq of computeFogVision(chess, 'w')) fog.add(sq);
+  }
+
   return {
     chess,
     checksWhite: 0,
     checksBlack: 0,
-    fogRevealed: new Set<string>(),
+    fogRevealed: fog,
     crazyhouseReserves: { w: [], b: [] },
   };
 }
 
 function generate960BackRank(): string {
-  const pieces = ['R', 'N', 'B', 'B', 'Q', 'K', 'N', 'R'];
-  let backRank: string[];
-  do {
-    backRank = [...pieces].sort(() => Math.random() - 0.5);
-  } while (
-    !isValid960Rank(backRank) ||
-    backRank.indexOf('B') % 2 === backRank.lastIndexOf('B') % 2
-  );
-  // Ensure bishops on opposite colors and king between rooks
-  return enforce960Rules(pieces);
+  return enforce960Rules(['R', 'N', 'B', 'B', 'Q', 'K', 'N', 'R']);
 }
 
 function enforce960Rules(pieces: string[]): string {
   const result = new Array<string>(8).fill('');
-  const bishops = pieces.filter((p) => p === 'B');
-  result[Math.floor(Math.random() * 4) * 2 + (Math.random() > 0.5 ? 0 : 1)] = bishops[0];
-  const remaining = [0, 1, 2, 3, 4, 5, 6, 7].filter((i) => !result[i]);
-  const darkSquare = remaining.find((i) => i % 2 === 1) ?? remaining[0];
-  result[darkSquare] = bishops[1];
+  const bishopSlotsLight = [0, 2, 4, 6];
+  const bishopSlotsDark = [1, 3, 5, 7];
+  result[bishopSlotsLight[Math.floor(Math.random() * 4)]] = 'B';
+  result[bishopSlotsDark[Math.floor(Math.random() * 4)]] = 'B';
 
-  const empty = [0, 1, 2, 3, 4, 5, 6, 7].filter((i) => !result[i]);
-  const kingPos = empty[Math.floor(Math.random() * (empty.length - 2)) + 1] ?? empty[1];
+  const empty = () => [0, 1, 2, 3, 4, 5, 6, 7].filter((i) => !result[i]);
+  let slots = empty();
+  const kingPos = slots[Math.floor(Math.random() * (slots.length - 2)) + 1] ?? slots[1];
   result[kingPos] = 'K';
-  const leftRook = empty.filter((i) => i < kingPos)[0];
-  const rightRook = empty.filter((i) => i > kingPos).pop();
-  if (leftRook !== undefined) result[leftRook] = 'R';
-  if (rightRook !== undefined) result[rightRook] = 'R';
+  slots = empty();
+  const left = slots.filter((i) => i < kingPos);
+  const right = slots.filter((i) => i > kingPos);
+  result[left[Math.floor(Math.random() * left.length)]] = 'R';
+  result[right[Math.floor(Math.random() * right.length)]] = 'R';
 
   const rest = pieces.filter((p) => !['B', 'K', 'R'].includes(p));
   let ri = 0;
@@ -75,16 +76,6 @@ function enforce960Rules(pieces: string[]): string {
     if (!result[i]) result[i] = rest[ri++];
   }
   return result.join('');
-}
-
-function isValid960Rank(rank: string[]): boolean {
-  const king = rank.indexOf('K');
-  const rooks = rank.map((p, i) => (p === 'R' ? i : -1)).filter((i) => i >= 0);
-  return rooks.some((r) => r < king) && rooks.some((r) => r > king);
-}
-
-function shuffleBackRank(): string {
-  return enforce960Rules(['R', 'N', 'B', 'B', 'Q', 'K', 'N', 'R']);
 }
 
 export function tryMove(
@@ -111,8 +102,17 @@ export function tryMove(
     checksWhite: state.checksWhite,
     checksBlack: state.checksBlack,
     fogRevealed: new Set(state.fogRevealed),
-    crazyhouseReserves: { ...state.crazyhouseReserves, w: [...state.crazyhouseReserves.w], b: [...state.crazyhouseReserves.b] },
+    crazyhouseReserves: {
+      w: [...state.crazyhouseReserves.w],
+      b: [...state.crazyhouseReserves.b],
+    },
   };
+
+  if (variant === 'crazyhouse' && move.captured) {
+    const side = move.color;
+    const piece = move.captured === 'p' ? 'p' : move.captured;
+    next.crazyhouseReserves[side].push(piece);
+  }
 
   if (variant === 'threeCheck' && chess.inCheck()) {
     if (chess.turn() === 'w') next.checksBlack++;
@@ -134,11 +134,98 @@ export function tryMove(
   }
 
   if (variant === 'neoFog') {
-    revealFog(next, from);
-    revealFog(next, to);
+    next.fogRevealed = computeFogVision(chess, 'w');
   }
 
   return { ok: true, state: next };
+}
+
+export function tryCrazyhouseDrop(
+  state: ExtendedGameState,
+  piece: string,
+  square: Square,
+  color: 'w' | 'b',
+): { ok: boolean; state: ExtendedGameState } {
+  if (piece === 'p') {
+    const rank = square[1];
+    if (rank === '1' || rank === '8') return { ok: false, state };
+  }
+  if (state.chess.get(square)) return { ok: false, state };
+
+  const reserve = [...state.crazyhouseReserves[color]];
+  const idx = reserve.indexOf(piece);
+  if (idx < 0) return { ok: false, state };
+  reserve.splice(idx, 1);
+
+  const chess = new Chess(state.chess.fen());
+  const placed = chess.put(
+    { type: piece as 'p' | 'n' | 'b' | 'r' | 'q' | 'k', color },
+    square,
+  );
+  if (!placed) return { ok: false, state };
+
+  // Switch turn manually by loading FEN with flipped side
+  const parts = chess.fen().split(' ');
+  parts[1] = color === 'w' ? 'b' : 'w';
+  try {
+    chess.load(parts.join(' '));
+  } catch {
+    return { ok: false, state };
+  }
+
+  return {
+    ok: true,
+    state: {
+      ...state,
+      chess,
+      crazyhouseReserves: {
+        ...state.crazyhouseReserves,
+        [color]: reserve,
+      },
+      fogRevealed: new Set(state.fogRevealed),
+    },
+  };
+}
+
+export function computeFogVision(chess: Chess, color: 'w' | 'b'): Set<string> {
+  const visible = new Set<string>();
+  for (const sq of ALL_SQUARES) {
+    const piece = chess.get(sq);
+    if (piece && piece.color === color) {
+      visible.add(sq);
+      for (const m of chess.moves({ square: sq, verbose: true })) {
+        visible.add(m.to);
+      }
+      // king adjacent fog
+      if (piece.type === 'k') {
+        const file = sq.charCodeAt(0) - 97;
+        const rank = parseInt(sq[1], 10) - 1;
+        for (let dr = -1; dr <= 1; dr++) {
+          for (let df = -1; df <= 1; df++) {
+            const f = file + df;
+            const r = rank + dr;
+            if (f >= 0 && f < 8 && r >= 0 && r < 8) {
+              visible.add(`${'abcdefgh'[f]}${r + 1}`);
+            }
+          }
+        }
+      }
+    }
+  }
+  return visible;
+}
+
+/** FEN with opponent pieces outside vision removed for Fog of War display */
+export function fogDisplayFen(state: ExtendedGameState, viewer: 'w' | 'b' = 'w'): string {
+  const vision = computeFogVision(state.chess, viewer);
+  const clone = new Chess(state.chess.fen());
+  for (const sq of ALL_SQUARES) {
+    const piece = clone.get(sq);
+    if (piece && piece.color !== viewer && !vision.has(sq) && !state.fogRevealed.has(sq)) {
+      clone.remove(sq);
+    }
+  }
+  return clone.fen();
 }
 
 function findKingSquare(chess: Chess, color: 'w' | 'b'): Square | null {
@@ -156,31 +243,17 @@ function findKingSquare(chess: Chess, color: 'w' | 'b'): Square | null {
 
 function applyAtomicExplosion(state: ExtendedGameState, square: Square) {
   const file = square.charCodeAt(0) - 97;
-  const rank = parseInt(square[1]) - 1;
-  const board = state.chess.board();
+  const rank = parseInt(square[1], 10) - 1;
   for (let dr = -1; dr <= 1; dr++) {
     for (let df = -1; df <= 1; df++) {
       const r = rank + dr;
       const f = file + df;
       if (r >= 0 && r < 8 && f >= 0 && f < 8) {
-        const p = board[7 - r][f];
+        const sq = `${'abcdefgh'[f]}${r + 1}` as Square;
+        const p = state.chess.get(sq);
         if (p && p.type !== 'p' && p.type !== 'k') {
-          state.chess.remove(`${'abcdefgh'[f]}${r + 1}` as Square);
+          state.chess.remove(sq);
         }
-      }
-    }
-  }
-}
-
-function revealFog(state: ExtendedGameState, square: Square) {
-  const file = square.charCodeAt(0) - 97;
-  const rank = parseInt(square[1]) - 1;
-  for (let dr = -1; dr <= 1; dr++) {
-    for (let df = -1; df <= 1; df++) {
-      const r = rank + dr;
-      const f = file + df;
-      if (r >= 0 && r < 8 && f >= 0 && f < 8) {
-        state.fogRevealed.add(`${'abcdefgh'[f]}${r + 1}`);
       }
     }
   }

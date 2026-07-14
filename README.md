@@ -29,14 +29,14 @@ Set `HIGGSFIELD_API_KEY` to enable live AI generation.
 ### Legacy
 The original [3D Hartwig chess set](legacy/) by @JulianGarnier is preserved in `/legacy`.
 
-## Quick Start
+## Phase 1.1 — AI, assets, and next features
 
-```bash
-npm install
-npm run dev
-```
-
-Open http://localhost:5173
+- **Higgsfield-first AI proxy** (`server/ai-proxy.mjs`) with OpenAI + procedural fallbacks
+- **Asset Studio** — Hartwig classic/marble upgrades + Neo board themes + handicaps
+- **Puzzles**, **Opening Explorer**, **PWA** (`manifest` + `sw.js`)
+- **Crazyhouse** reserves/drops and **Fog of War** hidden pieces
+- Run full stack: `npm run dev` (Vite + AI proxy)
+- Credentials: `HF_CREDENTIALS` and/or `OPENAI_API_KEY` (see `.env.example`)
 
 ## Build
 

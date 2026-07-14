@@ -1,23 +1,59 @@
-import { useState } from 'react';
-import { Lock, Sparkles, Wand2, Zap } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Lock, Sparkles, Wand2, Zap, RefreshCw, Check } from 'lucide-react';
 import { PREMIUM_FEATURES } from '../data/constants';
-import { generateBoardTheme } from '../services/higgsfield';
+import { generateBoardTheme, generateGameReplay, getAiStatus, type AiStatus } from '../services/higgsfield';
+import { useSettings, type AiProviderId } from '../context/SettingsContext';
+import type { BoardTheme } from '../data/themes';
 
 export function PremiumView() {
-  const [prompt, setPrompt] = useState('');
+  const { aiProvider, setAiProvider, applyCustomTheme, activeBoardTheme } = useSettings();
+  const [prompt, setPrompt] = useState('Obsidian glass chessboard with teal edge lighting, Colorado night sky reflection');
+  const [style, setStyle] = useState<'traditional' | 'neo' | 'competition'>('neo');
   const [generating, setGenerating] = useState(false);
-  const [generatedPreview, setGeneratedPreview] = useState<string | null>(null);
+  const [resultDesc, setResultDesc] = useState<string | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [status, setStatus] = useState<AiStatus | null>(null);
+  const [replayMsg, setReplayMsg] = useState<string | null>(null);
+  const [applied, setApplied] = useState(false);
+
+  useEffect(() => {
+    getAiStatus().then(setStatus);
+  }, []);
 
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
     setGenerating(true);
-    const result = await generateBoardTheme({ prompt, style: 'neo' });
-    setGeneratedPreview(result.description);
+    setApplied(false);
+    const result = await generateBoardTheme({ prompt, style, provider: aiProvider });
+    setResultDesc(result.description);
+    setPreviewUrl(result.previewUrl ?? null);
+    const theme: BoardTheme = {
+      id: 'ai-custom',
+      name: 'AI Custom',
+      tagline: `${result.provider} · ${result.mode}`,
+      lightSquare: result.themeConfig.lightSquare,
+      darkSquare: result.themeConfig.darkSquare,
+      highlight: result.themeConfig.highlightColor,
+      source: 'ai',
+      textureHint: result.themeConfig.boardTexture,
+    };
+    applyCustomTheme(theme);
+    setApplied(true);
     setGenerating(false);
   };
 
-  const proFeatures = PREMIUM_FEATURES.filter((f) => f.tier === 'pro');
-  const eliteFeatures = PREMIUM_FEATURES.filter((f) => f.tier === 'elite');
+  const handleReplay = async () => {
+    const res = await generateGameReplay('1.e4 e5 2.Nf3 Nc6 3.Bb5 a6');
+    setReplayMsg(res.description);
+  };
+
+  const proFeatures = PREMIUM_FEATURES.map((f) =>
+    f.id === 'ai-board-skin' || f.id === 'ai-coach' || f.id === 'puzzle-gen' || f.id === 'deep-analysis'
+      ? { ...f, available: true }
+      : f,
+  );
+  const elite = proFeatures.filter((f) => f.tier === 'elite');
+  const pro = proFeatures.filter((f) => f.tier === 'pro');
 
   return (
     <div className="premium-view">
@@ -25,67 +61,89 @@ export function PremiumView() {
         <Sparkles size={32} />
         <h2>Neo Premium</h2>
         <p>
-          AI-powered features that no other chess app combines — board generation, cinematic replays,
-          and personalized coaching via Higgsfield AI, plus deep Stockfish analysis.
+          Higgsfield-first creative pipeline with OpenAI image + procedural fallbacks —
+          generate board skins, coach notes, and cinematic replay stubs that sell the Neo spin.
         </p>
-        <div className="pricing-cards">
-          <div className="price-card">
-            <h3>Pro</h3>
-            <p className="price">$4.99<span>/mo</span></p>
-            <ul>
-              <li>Deep Stockfish analysis</li>
-              <li>AI board skin generator</li>
-              <li>Neo Coach game review</li>
-              <li>Infinite puzzle generator</li>
-            </ul>
-            <button type="button" className="primary-btn">Start Pro Trial</button>
-          </div>
-          <div className="price-card featured">
-            <h3>Elite</h3>
-            <p className="price">$9.99<span>/mo</span></p>
-            <ul>
-              <li>Everything in Pro</li>
-              <li>Opening Lab AI</li>
-              <li>Custom variant builder</li>
-              <li>AI opponent avatars</li>
-              <li>Cinematic game replays</li>
-            </ul>
-            <button type="button" className="primary-btn">Start Elite Trial</button>
-          </div>
+        <div className="provider-status">
+          <span className={status?.higgsfield ? 'on' : 'off'}>Higgsfield {status?.higgsfield ? 'ready' : 'offline'}</span>
+          <span className={status?.openai ? 'on' : 'off'}>OpenAI {status?.openai ? 'ready' : 'offline'}</span>
+          <span className="on">Procedural always-on</span>
         </div>
       </header>
 
       <section className="ai-generator">
-        <h3><Wand2 size={20} /> Higgsfield AI Board Generator</h3>
-        <p>Describe your dream board — our AI creates custom themes and piece sets.</p>
+        <h3><Wand2 size={20} /> Multi-provider Board Studio</h3>
+        <p>Primary: Higgsfield Soul/FLUX. Alternatives: OpenAI Images · local procedural palette (instant).</p>
+        <div className="provider-row">
+          {([
+            ['auto', 'Auto'],
+            ['higgsfield', 'Higgsfield'],
+            ['openai', 'OpenAI'],
+            ['procedural', 'Procedural'],
+          ] as [AiProviderId, string][]).map(([id, label]) => (
+            <button
+              key={id}
+              type="button"
+              className={`chip ${aiProvider === id ? 'active' : ''}`}
+              onClick={() => setAiProvider(id)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        <div className="provider-row">
+          {(['traditional', 'competition', 'neo'] as const).map((s) => (
+            <button key={s} type="button" className={`chip ${style === s ? 'active' : ''}`} onClick={() => setStyle(s)}>
+              {s}
+            </button>
+          ))}
+        </div>
         <div className="generator-box">
           <textarea
-            placeholder="e.g. Cyberpunk neon board with holographic glass pieces, rain-slick reflections…"
+            placeholder="Describe board / piece aesthetic…"
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             rows={3}
           />
           <button type="button" className="primary-btn" onClick={handleGenerate} disabled={generating}>
-            {generating ? 'Generating…' : 'Generate Preview'}
+            {generating ? <><RefreshCw size={16} className="spin" /> Generating…</> : 'Generate & Apply Theme'}
           </button>
         </div>
-        {generatedPreview && (
+        {(resultDesc || previewUrl) && (
           <div className="ai-preview">
-            <div className="preview-placeholder">
-              <Zap size={48} />
-              <p>{generatedPreview}</p>
+            {previewUrl ? (
+              <img src={previewUrl} alt="AI board preview" className="ai-preview-img" />
+            ) : (
+              <div
+                className="theme-swatch"
+                style={{
+                  background: `linear-gradient(135deg, ${activeBoardTheme.lightSquare}, ${activeBoardTheme.darkSquare})`,
+                }}
+              />
+            )}
+            <div>
+              <p>{resultDesc}</p>
+              {applied && (
+                <p className="applied-msg"><Check size={14} /> Applied — live on Play board ({activeBoardTheme.lightSquare} / {activeBoardTheme.darkSquare})</p>
+              )}
             </div>
           </div>
         )}
+        <div className="replay-row">
+          <button type="button" className="ghost-cta" onClick={handleReplay}>
+            <Zap size={16} /> Stage cinematic replay (Higgsfield image→video)
+          </button>
+          {replayMsg && <p className="muted">{replayMsg}</p>}
+        </div>
         <p className="api-note">
-          Set <code>HIGGSFIELD_API_KEY</code> in your environment to enable live Higgsfield AI generation.
+          Server: <code>npm run ai:proxy</code> · Env: <code>HF_CREDENTIALS</code> or <code>OPENAI_API_KEY</code>
         </p>
       </section>
 
       <section className="feature-grid">
         <h3>Pro Features</h3>
         <div className="features">
-          {proFeatures.map((f) => (
+          {pro.map((f) => (
             <article key={f.id} className={`feature-card ${f.available ? 'available' : 'locked'}`}>
               {!f.available && <Lock size={16} className="lock-icon" />}
               <h4>{f.title}</h4>
@@ -94,10 +152,9 @@ export function PremiumView() {
             </article>
           ))}
         </div>
-
         <h3>Elite Features</h3>
         <div className="features">
-          {eliteFeatures.map((f) => (
+          {elite.map((f) => (
             <article key={f.id} className={`feature-card ${f.available ? 'available' : 'locked'}`}>
               {!f.available && <Lock size={16} className="lock-icon" />}
               <h4>{f.title}</h4>

@@ -6,9 +6,21 @@ import { ClubsView } from './views/ClubsView';
 import { PremiumView } from './views/PremiumView';
 import { LearnView } from './views/LearnView';
 import { LandingView } from './views/LandingView';
+import { PuzzlesView } from './views/PuzzlesView';
+import { ExploreView } from './views/ExploreView';
+import { StudioView } from './views/StudioView';
 import type { VariantId } from './types';
 
-export type Tab = 'landing' | 'play' | 'variants' | 'clubs' | 'premium' | 'learn';
+export type Tab =
+  | 'landing'
+  | 'play'
+  | 'variants'
+  | 'puzzles'
+  | 'explore'
+  | 'studio'
+  | 'clubs'
+  | 'premium'
+  | 'learn';
 
 export default function App() {
   const [tab, setTab] = useState<Tab>('landing');
@@ -17,8 +29,9 @@ export default function App() {
 
   useEffect(() => {
     const hash = window.location.hash.replace('#', '');
-    if (hash === 'download' || hash === 'landing') setTab('landing');
-    if (hash === 'play') setTab('play');
+    const known: Tab[] = ['landing', 'play', 'variants', 'puzzles', 'explore', 'studio', 'clubs', 'premium', 'learn'];
+    if (known.includes(hash as Tab)) setTab(hash as Tab);
+    if (hash === 'download') setTab('landing');
   }, []);
 
   const startGame = (variant: VariantId) => {
@@ -30,10 +43,7 @@ export default function App() {
   return (
     <Layout activeTab={tab} onTabChange={setTab}>
       {tab === 'landing' && (
-        <LandingView
-          onPlay={() => setTab('play')}
-          onDownloadFocus={() => setTab('landing')}
-        />
+        <LandingView onPlay={() => setTab('play')} onDownloadFocus={() => setTab('landing')} />
       )}
       {tab === 'play' && (
         <PlayView
@@ -45,6 +55,9 @@ export default function App() {
         />
       )}
       {tab === 'variants' && <VariantsView onSelect={startGame} />}
+      {tab === 'puzzles' && <PuzzlesView />}
+      {tab === 'explore' && <ExploreView />}
+      {tab === 'studio' && <StudioView />}
       {tab === 'clubs' && <ClubsView />}
       {tab === 'premium' && <PremiumView />}
       {tab === 'learn' && <LearnView />}
