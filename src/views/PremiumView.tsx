@@ -5,7 +5,7 @@ import { generateBoardTheme, generateGameReplay, getAiStatus, type AiStatus } fr
 import { useSettings, type AiProviderId } from '../context/SettingsContext';
 import type { BoardTheme } from '../data/themes';
 
-export function PremiumView() {
+export function PremiumView({ onGotoSetup }: { onGotoSetup?: () => void }) {
   const { aiProvider, setAiProvider, applyCustomTheme, activeBoardTheme } = useSettings();
   const [prompt, setPrompt] = useState('Obsidian glass chessboard with teal edge lighting, Colorado night sky reflection');
   const [style, setStyle] = useState<'traditional' | 'neo' | 'competition'>('neo');
@@ -136,6 +136,19 @@ export function PremiumView() {
           {replayMsg && <p className="muted">{replayMsg}</p>}
         </div>
         <p className="api-note">
+          Need keys?{' '}
+          <a href="https://cloud.higgsfield.ai/" target="_blank" rel="noopener noreferrer">Higgsfield Cloud</a>
+          {' · '}
+          <a href="https://docs.higgsfield.ai" target="_blank" rel="noopener noreferrer">API Docs</a>
+          {' · '}
+          <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer">OpenAI Keys</a>
+          {' · '}
+          {onGotoSetup ? (
+            <button type="button" className="linkish" onClick={onGotoSetup}>Open Setup tab</button>
+          ) : (
+            <span>Setup tab</span>
+          )}
+          <br />
           Server: <code>npm run ai:proxy</code> · Env: <code>HF_CREDENTIALS</code> or <code>OPENAI_API_KEY</code>
         </p>
       </section>

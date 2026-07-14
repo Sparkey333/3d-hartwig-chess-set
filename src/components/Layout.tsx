@@ -9,6 +9,7 @@ import {
   Puzzle,
   Compass,
   Palette,
+  KeyRound,
 } from 'lucide-react';
 import type { Tab } from '../App';
 
@@ -20,6 +21,7 @@ interface LayoutProps {
 
 const TABS: { id: Tab; label: string; icon: typeof Gamepad2 }[] = [
   { id: 'landing', label: 'Home', icon: Home },
+  { id: 'setup', label: 'Setup', icon: KeyRound },
   { id: 'play', label: 'Play', icon: Gamepad2 },
   { id: 'variants', label: 'Variants', icon: Crown },
   { id: 'puzzles', label: 'Puzzles', icon: Puzzle },
@@ -58,7 +60,7 @@ export function Layout({ activeTab, onTabChange, children }: LayoutProps) {
       <main className="app-main">{children}</main>
       <footer className="app-footer">
         <span>chess.js · react-chessboard · Stockfish · Higgsfield AI</span>
-        <span>Colorado Springs, CO</span>
+        <span>Colorado Springs, CO · Mac builds → Downloads</span>
       </footer>
     </div>
   );

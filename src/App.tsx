@@ -9,10 +9,12 @@ import { LandingView } from './views/LandingView';
 import { PuzzlesView } from './views/PuzzlesView';
 import { ExploreView } from './views/ExploreView';
 import { StudioView } from './views/StudioView';
+import { SetupView } from './views/SetupView';
 import type { VariantId } from './types';
 
 export type Tab =
   | 'landing'
+  | 'setup'
   | 'play'
   | 'variants'
   | 'puzzles'
@@ -29,9 +31,12 @@ export default function App() {
 
   useEffect(() => {
     const hash = window.location.hash.replace('#', '');
-    const known: Tab[] = ['landing', 'play', 'variants', 'puzzles', 'explore', 'studio', 'clubs', 'premium', 'learn'];
+    const known: Tab[] = [
+      'landing', 'setup', 'play', 'variants', 'puzzles',
+      'explore', 'studio', 'clubs', 'premium', 'learn',
+    ];
     if (known.includes(hash as Tab)) setTab(hash as Tab);
-    if (hash === 'download') setTab('landing');
+    if (hash === 'download' || hash === 'keys') setTab(hash === 'keys' ? 'setup' : 'landing');
   }, []);
 
   const startGame = (variant: VariantId) => {
@@ -43,8 +48,13 @@ export default function App() {
   return (
     <Layout activeTab={tab} onTabChange={setTab}>
       {tab === 'landing' && (
-        <LandingView onPlay={() => setTab('play')} onDownloadFocus={() => setTab('landing')} />
+        <LandingView
+          onPlay={() => setTab('play')}
+          onDownloadFocus={() => setTab('landing')}
+          onSetup={() => setTab('setup')}
+        />
       )}
+      {tab === 'setup' && <SetupView />}
       {tab === 'play' && (
         <PlayView
           variant={activeVariant}
@@ -59,7 +69,7 @@ export default function App() {
       {tab === 'explore' && <ExploreView />}
       {tab === 'studio' && <StudioView />}
       {tab === 'clubs' && <ClubsView />}
-      {tab === 'premium' && <PremiumView />}
+      {tab === 'premium' && <PremiumView onGotoSetup={() => setTab('setup')} />}
       {tab === 'learn' && <LearnView />}
     </Layout>
   );
