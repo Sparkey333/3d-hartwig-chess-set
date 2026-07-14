@@ -1,12 +1,17 @@
-import { Download, ArrowRight, Sparkles, MapPin, Crown } from 'lucide-react';
+import { ArrowRight, Sparkles, MapPin, Crown } from 'lucide-react';
+import { SetupGuide } from '../components/SetupGuide';
+import {
+  downloadAndOpenLocalMacDmg,
+  downloadLocalMacZip,
+  localMacDownloadLabel,
+  DMG_FILENAME,
+  ZIP_FILENAME,
+} from '../lib/macDownload';
 
 interface LandingViewProps {
   onPlay: () => void;
   onDownloadFocus: () => void;
 }
-
-const DMG_HREF = '/downloads/Neo-Chess-1.0.0-mac.dmg';
-const ZIP_HREF = '/downloads/Neo-Chess-1.0.0-mac.zip';
 
 export function LandingView({ onPlay }: LandingViewProps) {
   return (
@@ -18,21 +23,22 @@ export function LandingView({ onPlay }: LandingViewProps) {
           <span> Neo.</span>
         </h2>
         <p className="landing-lede">
-          A new chess platform for Mac and the web — Stockfish analysis, Colorado club search,
-          and Premium AI-generated board skins.
+          Local Mac first — Stockfish analysis, Colorado clubs, and Premium AI boards.
+          Downloads always refresh into <code>~/Downloads</code> and open the new DMG.
         </p>
         <div className="landing-ctas">
-          <a className="primary-btn large" href={DMG_HREF} download>
-            <Download size={18} /> Download Mac DMG
-          </a>
+          <button type="button" className="primary-btn large" onClick={() => void downloadAndOpenLocalMacDmg()}>
+            Refresh &amp; open Mac DMG
+          </button>
           <button type="button" className="ghost-cta" onClick={onPlay}>
             Play in browser <ArrowRight size={16} />
           </button>
         </div>
         <p className="landing-meta">
-          Also available as{' '}
-          <a href={ZIP_HREF} download>Mac ZIP</a>
-          {' '}· files land in project <code>Downloads/</code> and <code>~/Downloads</code>
+          {localMacDownloadLabel()} · ZIP fallback:{' '}
+          <button type="button" className="linkish" onClick={() => void downloadLocalMacZip()}>
+            {ZIP_FILENAME}
+          </button>
         </p>
       </section>
 
@@ -50,29 +56,41 @@ export function LandingView({ onPlay }: LandingViewProps) {
         <article>
           <Sparkles size={20} />
           <h3>Premium AI</h3>
-          <p>Higgsfield-ready board generation and cinematic coaching for Pro/Elite tiers.</p>
+          <p>
+            Higgsfield keys from{' '}
+            <a href="https://cloud.higgsfield.ai" target="_blank" rel="noopener noreferrer">
+              cloud.higgsfield.ai
+            </a>
+            , plus offline Procedural/Curated skins.
+          </p>
         </article>
       </section>
 
       <section className="landing-download-panel" id="download">
-        <h3>macOS download</h3>
+        <h3>macOS package (this Mac → ~/Downloads)</h3>
         <div className="download-rows">
           <div className="download-row">
             <div>
-              <strong>Neo-Chess-1.0.0-mac.dmg</strong>
-              <p>Mount → drag Neo Chess.app to Applications → Open</p>
+              <strong>{DMG_FILENAME}</strong>
+              <p>Cache-busted download → open/mount the new image → drag app to Applications</p>
             </div>
-            <a className="primary-btn" href={DMG_HREF} download>Download DMG</a>
+            <button type="button" className="primary-btn" onClick={() => void downloadAndOpenLocalMacDmg()}>
+              Refresh &amp; open DMG
+            </button>
           </div>
           <div className="download-row">
             <div>
-              <strong>Neo-Chess-1.0.0-mac.zip</strong>
-              <p>Fallback package with the same Mac app + landing page.</p>
+              <strong>{ZIP_FILENAME}</strong>
+              <p>Fallback package if Disk Image Mounter is blocked.</p>
             </div>
-            <a className="ghost-cta" href={ZIP_HREF} download>Download ZIP</a>
+            <button type="button" className="ghost-cta" onClick={() => void downloadLocalMacZip()}>
+              Download ZIP
+            </button>
           </div>
         </div>
       </section>
+
+      <SetupGuide showDownloadCta={false} />
     </div>
   );
 }

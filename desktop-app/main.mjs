@@ -1,10 +1,11 @@
-import { app, BrowserWindow, shell } from 'electron';
+import { app, BrowserWindow, shell, ipcMain } from 'electron';
 import path from 'node:path';
+import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
 const isDev = !app.isPackaged;
+const DMG_NAME = 'Neo-Chess-1.0.0-mac.dmg';
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -18,6 +19,7 @@ function createWindow() {
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,
+      preload: path.join(__dirname, 'preload.cjs'),
     },
   });
 
@@ -35,7 +37,25 @@ function createWindow() {
   });
 }
 
+async function openLocalMacDmg() {
+  const downloads = app.getPath('downloads');
+  const candidates = [
+    path.join(downloads, DMG_NAME),
+    path.join(__dirname, '../Downloads', DMG_NAME),
+    path.join(__dirname, '../dist/downloads', DMG_NAME),
+  ];
+  for (const candidate of candidates) {
+    if (fs.existsSync(candidate)) {
+      const err = await shell.openPath(candidate);
+      if (err) throw new Error(err);
+      return candidate;
+    }
+  }
+  throw new Error('DMG not found in ~/Downloads. Run npm run pack:mac first.');
+}
+
 app.whenReady().then(() => {
+  ipcMain.handle('neo:open-downloads-dmg', async () => openLocalMacDmg());
   createWindow();
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();

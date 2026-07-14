@@ -24,9 +24,22 @@ Find real OTB chess clubs and USCF-rated tournaments, with Colorado Springs as t
 
 ```bash
 # Server-only credentials (never VITE_ — SDK blocks browsers)
+# Get keys: https://cloud.higgsfield.ai
+# Docs:     https://docs.higgsfield.ai
+# SDK:      https://github.com/higgsfield-ai/higgsfield-js
+# Status:   https://status.higgsfield.ai
 export HF_CREDENTIALS="KEY_ID:KEY_SECRET"
 npm run dev
 ```
+
+### Local Mac packages (this machine only for now)
+
+```bash
+npm run pack:mac   # rebuild DMG/ZIP → ~/Downloads + open on macOS
+npm run open:dmg   # open ~/Downloads/Neo-Chess-1.0.0-mac.dmg
+```
+
+In the app **Home** tab or `/landing/`: use **Refresh & open Mac DMG** (cache-busted download into this Mac’s Downloads, then open).
 
 ### Legacy
 The original [3D Hartwig chess set](legacy/) by @JulianGarnier is preserved in `/legacy` and linked from the app footer (`/legacy/index.html`).

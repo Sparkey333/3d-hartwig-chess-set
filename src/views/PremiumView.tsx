@@ -12,6 +12,7 @@ import {
   saveActiveTheme,
   type BoardThemeConfig,
 } from '../services/themeAlternatives';
+import { SetupGuide } from '../components/SetupGuide';
 
 export function PremiumView() {
   const [prompt, setPrompt] = useState('');
@@ -226,10 +227,19 @@ export function PremiumView() {
         )}
 
         <p className="api-note">
-          Live Higgsfield uses server env <code>HF_CREDENTIALS=KEY_ID:KEY_SECRET</code> (never{' '}
-          <code>VITE_*</code>). Without credentials, Auto/Procedural/Curated still work offline.
+          Live Higgsfield uses server env <code>HF_CREDENTIALS=KEY_ID:KEY_SECRET</code> from{' '}
+          <a href="https://cloud.higgsfield.ai" target="_blank" rel="noopener noreferrer">
+            cloud.higgsfield.ai
+          </a>{' '}
+          (never <code>VITE_*</code>). Docs:{' '}
+          <a href="https://docs.higgsfield.ai" target="_blank" rel="noopener noreferrer">
+            docs.higgsfield.ai
+          </a>
+          . Without credentials, Auto/Procedural/Curated still work offline on this Mac.
         </p>
       </section>
+
+      <SetupGuide compact />
 
       <section className="feature-grid">
         <h3>Pro Features</h3>

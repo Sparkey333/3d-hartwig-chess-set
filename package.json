@@ -12,7 +12,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "desktop": "electron .",
-    "pack:mac": "bash scripts/build-mac-dmg.sh"
+    "pack:mac": "bash scripts/build-mac-dmg.sh",
+    "open:dmg": "bash scripts/open-local-dmg.sh"
   },
   "dependencies": {
     "@higgsfield/client": "^0.2.1",

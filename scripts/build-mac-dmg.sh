@@ -140,5 +140,15 @@ echo "  DMG:     $DMG_PATH"
 echo "  ZIP:     $ZIP_PATH"
 echo "  Landing: $OUT_DIR/Neo-Chess-Landing.html"
 echo "  Web landing: /landing/ and Home tab in app"
-echo "  Copied to: $USER_DOWNLOADS"
+echo "  Copied to: $USER_DOWNLOADS (this Mac’s Downloads)"
 ls -lh "$DMG_PATH" "$ZIP_PATH" "$USER_DOWNLOADS/$DMG_NAME"
+
+# Always open the new DMG on this Mac after pack
+if [[ "$(uname -s)" == "Darwin" ]]; then
+  echo "==> Opening fresh DMG from $USER_DOWNLOADS …"
+  open "$USER_DOWNLOADS/$DMG_NAME" || open "$DMG_PATH" || true
+elif command -v open >/dev/null 2>&1; then
+  open "$DMG_PATH" || true
+else
+  echo "Note: not on macOS — open manually with: open ~/Downloads/$DMG_NAME"
+fi
