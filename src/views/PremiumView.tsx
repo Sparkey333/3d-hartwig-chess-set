@@ -1,23 +1,74 @@
-import { useState } from 'react';
-import { Lock, Sparkles, Wand2, Zap } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Lock, Sparkles, Wand2, Zap, Palette, Check } from 'lucide-react';
 import { PREMIUM_FEATURES } from '../data/constants';
-import { generateBoardTheme } from '../services/higgsfield';
+import {
+  generateBoardTheme,
+  generateOpponentAvatar,
+  type ThemeProvider,
+} from '../services/higgsfield';
+import {
+  listCuratedThemes,
+  loadActiveTheme,
+  saveActiveTheme,
+  type BoardThemeConfig,
+} from '../services/themeAlternatives';
 
 export function PremiumView() {
   const [prompt, setPrompt] = useState('');
+  const [style, setStyle] = useState<'traditional' | 'neo' | 'competition'>('neo');
+  const [provider, setProvider] = useState<ThemeProvider>('auto');
+  const [curatedId, setCuratedId] = useState('neoGlass');
   const [generating, setGenerating] = useState(false);
-  const [generatedPreview, setGeneratedPreview] = useState<string | null>(null);
+  const [description, setDescription] = useState<string | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [theme, setTheme] = useState<BoardThemeConfig | null>(() => loadActiveTheme());
+  const [avatarDesc, setAvatarDesc] = useState<string | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [applied, setApplied] = useState(false);
+
+  const curated = listCuratedThemes();
+  const proFeatures = PREMIUM_FEATURES.filter((f) => f.tier === 'pro');
+  const eliteFeatures = PREMIUM_FEATURES.filter((f) => f.tier === 'elite');
+
+  useEffect(() => {
+    if (!theme) return;
+    document.documentElement.style.setProperty('--board-light', theme.lightSquare);
+    document.documentElement.style.setProperty('--board-dark', theme.darkSquare);
+    document.documentElement.style.setProperty('--board-highlight', theme.highlightColor);
+    if (theme.accent) {
+      document.documentElement.style.setProperty('--accent', theme.accent);
+    }
+  }, [theme]);
 
   const handleGenerate = async () => {
-    if (!prompt.trim()) return;
+    if (provider !== 'curated' && !prompt.trim()) return;
     setGenerating(true);
-    const result = await generateBoardTheme({ prompt, style: 'neo' });
-    setGeneratedPreview(result.description);
+    setApplied(false);
+    const result = await generateBoardTheme({
+      prompt,
+      style,
+      provider,
+      curatedId: provider === 'curated' ? curatedId : undefined,
+    });
+    setDescription(result.description);
+    setPreviewUrl(result.previewUrl ?? null);
+    setTheme(result.themeConfig);
     setGenerating(false);
   };
 
-  const proFeatures = PREMIUM_FEATURES.filter((f) => f.tier === 'pro');
-  const eliteFeatures = PREMIUM_FEATURES.filter((f) => f.tier === 'elite');
+  const handleApply = () => {
+    if (!theme) return;
+    saveActiveTheme(theme);
+    setApplied(true);
+  };
+
+  const handleAvatar = async () => {
+    setGenerating(true);
+    const result = await generateOpponentAvatar(prompt || 'stoic grandmaster rival');
+    setAvatarDesc(result.description);
+    setAvatarUrl(result.previewUrl ?? null);
+    setGenerating(false);
+  };
 
   return (
     <div className="premium-view">
@@ -25,8 +76,8 @@ export function PremiumView() {
         <Sparkles size={32} />
         <h2>Neo Premium</h2>
         <p>
-          AI-powered features that no other chess app combines — board generation, cinematic replays,
-          and personalized coaching via Higgsfield AI, plus deep Stockfish analysis.
+          AI-powered boards via Higgsfield (server proxy) with offline procedural and curated
+          Hartwig-inspired alternatives when no API key is set.
         </p>
         <div className="pricing-cards">
           <div className="price-card">
@@ -56,29 +107,127 @@ export function PremiumView() {
       </header>
 
       <section className="ai-generator">
-        <h3><Wand2 size={20} /> Higgsfield AI Board Generator</h3>
-        <p>Describe your dream board — our AI creates custom themes and piece sets.</p>
+        <h3><Wand2 size={20} /> Board Theme Studio</h3>
+        <p>
+          Providers: <strong>Auto</strong> (Higgsfield → procedural fallback),{' '}
+          <strong>Higgsfield</strong> (FLUX via server proxy),{' '}
+          <strong>Procedural</strong> (offline), <strong>Curated</strong> (legacy Hartwig skins).
+        </p>
+
+        <div className="provider-row" role="group" aria-label="Theme provider">
+          {(['auto', 'higgsfield', 'procedural', 'curated'] as ThemeProvider[]).map((p) => (
+            <button
+              key={p}
+              type="button"
+              className={`chip ${provider === p ? 'active' : ''}`}
+              onClick={() => setProvider(p)}
+            >
+              {p}
+            </button>
+          ))}
+        </div>
+
+        <div className="provider-row" role="group" aria-label="Style">
+          {(['traditional', 'neo', 'competition'] as const).map((s) => (
+            <button
+              key={s}
+              type="button"
+              className={`chip ${style === s ? 'active' : ''}`}
+              onClick={() => setStyle(s)}
+            >
+              {s}
+            </button>
+          ))}
+        </div>
+
+        {provider === 'curated' && (
+          <div className="provider-row" role="listbox" aria-label="Curated skins">
+            {curated.map((c) => (
+              <button
+                key={c.id}
+                type="button"
+                className={`chip ${curatedId === c.id ? 'active' : ''}`}
+                onClick={() => setCuratedId(c.id)}
+              >
+                <Palette size={14} /> {c.label}
+              </button>
+            ))}
+          </div>
+        )}
+
         <div className="generator-box">
           <textarea
             placeholder="e.g. Cyberpunk neon board with holographic glass pieces, rain-slick reflections…"
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             rows={3}
+            disabled={provider === 'curated'}
+            aria-label="Board theme prompt"
           />
-          <button type="button" className="primary-btn" onClick={handleGenerate} disabled={generating}>
-            {generating ? 'Generating…' : 'Generate Preview'}
-          </button>
+          <div className="generator-actions">
+            <button type="button" className="primary-btn" onClick={handleGenerate} disabled={generating}>
+              {generating ? 'Generating…' : 'Generate Theme'}
+            </button>
+            <button type="button" className="ghost" onClick={handleAvatar} disabled={generating}>
+              Generate Avatar
+            </button>
+            {theme && (
+              <button type="button" className="primary-btn" onClick={handleApply}>
+                {applied ? <><Check size={16} /> Applied</> : 'Apply to Games'}
+              </button>
+            )}
+          </div>
         </div>
-        {generatedPreview && (
-          <div className="ai-preview">
-            <div className="preview-placeholder">
-              <Zap size={48} />
-              <p>{generatedPreview}</p>
+
+        {theme && (
+          <div className="theme-swatch" aria-label="Theme preview swatches">
+            <div className="swatch" style={{ background: theme.lightSquare }} title="Light square" />
+            <div className="swatch" style={{ background: theme.darkSquare }} title="Dark square" />
+            <div className="swatch" style={{ background: theme.highlightColor }} title="Highlight" />
+            <div className="mini-board" style={{ background: theme.background }}>
+              {Array.from({ length: 8 }, (_, r) =>
+                Array.from({ length: 8 }, (_, c) => (
+                  <span
+                    key={`${r}-${c}`}
+                    style={{
+                      background: (r + c) % 2 === 0 ? theme.lightSquare : theme.darkSquare,
+                    }}
+                  />
+                )),
+              )}
+            </div>
+            <div className="theme-meta">
+              <strong>{theme.boardLabel}</strong>
+              <span>{theme.pieceStyle}</span>
             </div>
           </div>
         )}
+
+        {description && (
+          <div className="ai-preview">
+            <div className="preview-placeholder">
+              {previewUrl ? (
+                <img src={previewUrl} alt="Generated board theme" className="ai-preview-img" />
+              ) : (
+                <Zap size={48} />
+              )}
+              <p>{description}</p>
+            </div>
+          </div>
+        )}
+
+        {(avatarDesc || avatarUrl) && (
+          <div className="ai-preview">
+            <div className="preview-placeholder">
+              {avatarUrl && <img src={avatarUrl} alt="Opponent avatar" className="ai-preview-img" />}
+              <p>{avatarDesc}</p>
+            </div>
+          </div>
+        )}
+
         <p className="api-note">
-          Set <code>HIGGSFIELD_API_KEY</code> in your environment to enable live Higgsfield AI generation.
+          Live Higgsfield uses server env <code>HF_CREDENTIALS=KEY_ID:KEY_SECRET</code> (never{' '}
+          <code>VITE_*</code>). Without credentials, Auto/Procedural/Curated still work offline.
         </p>
       </section>
 

@@ -735,9 +735,94 @@ body {
   to { opacity: 1; transform: none; }
 }
 
+/* Premium theme studio */
+.provider-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.75rem 0;
+}
+.chip {
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-muted);
+  border-radius: 999px;
+  padding: 0.35rem 0.85rem;
+  font-size: 0.8rem;
+  text-transform: capitalize;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.chip.active {
+  color: white;
+  border-color: var(--accent, #6366f1);
+  background: color-mix(in srgb, var(--accent, #6366f1) 28%, transparent);
+}
+.generator-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+.theme-swatch {
+  display: grid;
+  grid-template-columns: repeat(3, 2rem) minmax(8rem, 12rem) 1fr;
+  gap: 0.75rem;
+  align-items: center;
+  margin: 1rem 0;
+}
+.theme-swatch .swatch {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+.mini-board {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  width: 8rem;
+  height: 8rem;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+.mini-board span { width: 100%; height: 100%; }
+.theme-meta { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.85rem; }
+.theme-meta span { color: var(--text-muted); }
+.ai-preview-img {
+  max-width: 100%;
+  max-height: 280px;
+  border-radius: 12px;
+  object-fit: cover;
+}
+.theme-active-label {
+  font-size: 0.8rem;
+  color: var(--accent, #a78bfa);
+  margin-top: 0.35rem;
+}
+.legacy-link {
+  color: var(--text-muted);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.legacy-link:hover { color: white; }
+.error-boundary {
+  max-width: 32rem;
+  margin: 4rem auto;
+  padding: 2rem;
+  text-align: center;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.error-boundary p { color: var(--text-muted); margin: 1rem 0 1.5rem; }
+
 @media (max-width: 900px) {
   .game-layout { grid-template-columns: 1fr; }
   .analysis-panel { width: 100%; }
   .app-main { padding: 1rem; }
   .tournament-card { grid-template-columns: 1fr; }
+  .theme-swatch { grid-template-columns: repeat(3, 2rem) 1fr; }
 }

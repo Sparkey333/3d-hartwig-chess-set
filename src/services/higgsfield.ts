@@ -1,87 +1,109 @@
 /**
- * Higgsfield AI integration for premium features.
- * Set HIGGSFIELD_API_KEY in .env to enable live generation.
+ * Client-side AI theme service.
+ * Live Higgsfield calls go through /api/ai/* (server-only — V2 SDK blocks browsers).
+ * Falls back to procedural / curated generators when the proxy is unavailable.
  */
+
+import {
+  generateProceduralTheme,
+  getCuratedTheme,
+  type ThemeGenerationResult,
+  type BoardThemeConfig,
+} from './themeAlternatives';
+
+export type ThemeProvider = 'auto' | 'higgsfield' | 'procedural' | 'curated';
 
 export interface GenerateBoardThemeRequest {
   prompt: string;
   style?: 'traditional' | 'neo' | 'competition';
+  provider?: ThemeProvider;
+  curatedId?: string;
 }
 
-export interface GenerateBoardThemeResponse {
-  previewUrl?: string;
+export type GenerateBoardThemeResponse = ThemeGenerationResult;
+
+export interface GenerateReplayResponse {
+  videoUrl?: string;
   description: string;
-  themeConfig: {
-    lightSquare: string;
-    darkSquare: string;
-    highlightColor: string;
-    pieceStyle: string;
-  };
+  source: 'higgsfield' | 'fallback';
 }
 
-const API_BASE = import.meta.env.VITE_HIGGSFIELD_API_URL ?? 'https://api.higgsfield.ai/v1';
+async function callProxy<T>(path: string, body: unknown): Promise<T | null> {
+  try {
+    const res = await fetch(path, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) return null;
+    return (await res.json()) as T;
+  } catch {
+    return null;
+  }
+}
 
 export async function generateBoardTheme(
   request: GenerateBoardThemeRequest,
 ): Promise<GenerateBoardThemeResponse> {
-  const apiKey = import.meta.env.VITE_HIGGSFIELD_API_KEY;
+  const provider = request.provider ?? 'auto';
+  const style = request.style ?? 'neo';
 
-  if (!apiKey) {
-    return {
-      description: `Preview for "${request.prompt}" — Connect VITE_HIGGSFIELD_API_KEY for live AI generation.`,
-      themeConfig: {
-        lightSquare: '#f0d9b5',
-        darkSquare: '#1a1a2e',
-        highlightColor: '#6366f1',
-        pieceStyle: 'neo-glass',
-      },
-    };
+  if (provider === 'curated' || request.curatedId) {
+    const id = (request.curatedId ?? 'neoGlass') as Parameters<typeof getCuratedTheme>[0];
+    return getCuratedTheme(id);
   }
 
-  try {
-    const response = await fetch(`${API_BASE}/generate/board-theme`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify(request),
+  if (provider === 'procedural') {
+    return generateProceduralTheme(request.prompt, style);
+  }
+
+  if (provider === 'higgsfield' || provider === 'auto') {
+    const remote = await callProxy<GenerateBoardThemeResponse>('/api/ai/board-theme', {
+      prompt: request.prompt,
+      style,
     });
-
-    if (!response.ok) throw new Error(`Higgsfield API error: ${response.status}`);
-    return await response.json();
-  } catch (err) {
-    return {
-      description: `Generation failed: ${err instanceof Error ? err.message : 'Unknown error'}. Using fallback theme.`,
-      themeConfig: {
-        lightSquare: '#f0d9b5',
-        darkSquare: '#1a1a2e',
-        highlightColor: '#6366f1',
-        pieceStyle: 'fallback',
-      },
-    };
-  }
-}
-
-export async function generateGameReplay(
-  pgn: string,
-): Promise<{ videoUrl?: string; description: string }> {
-  const apiKey = import.meta.env.VITE_HIGGSFIELD_API_KEY;
-  if (!apiKey) {
-    return {
-      description: 'Cinematic replay generation requires Elite subscription and HIGGSFIELD_API_KEY.',
-    };
+    if (remote?.themeConfig) {
+      return { ...remote, source: 'higgsfield' };
+    }
+    if (provider === 'higgsfield') {
+      return {
+        source: 'higgsfield',
+        description:
+          'Higgsfield proxy unavailable. Set HF_CREDENTIALS (or HF_API_KEY + HF_API_SECRET) and restart `npm run dev`. Falling back to procedural theme.',
+        themeConfig: generateProceduralTheme(request.prompt, style).themeConfig,
+      };
+    }
   }
 
-  const response = await fetch(`${API_BASE}/generate/chess-replay`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({ pgn }),
-  });
-
-  if (!response.ok) throw new Error('Replay generation failed');
-  return response.json();
+  return generateProceduralTheme(request.prompt, style);
 }
+
+export async function generateGameReplay(pgn: string): Promise<GenerateReplayResponse> {
+  const remote = await callProxy<GenerateReplayResponse>('/api/ai/replay', { pgn });
+  if (remote) return { ...remote, source: remote.source ?? 'higgsfield' };
+
+  return {
+    source: 'fallback',
+    description:
+      'Cinematic replay requires HF_CREDENTIALS on the server. Export your PGN and use Premium once credentials are configured.',
+  };
+}
+
+export async function generateOpponentAvatar(
+  personality: string,
+): Promise<{ previewUrl?: string; description: string; themeConfig?: BoardThemeConfig }> {
+  const remote = await callProxy<{ previewUrl?: string; description: string }>(
+    '/api/ai/avatar',
+    { personality },
+  );
+  if (remote) return remote;
+
+  const theme = generateProceduralTheme(`avatar ${personality}`, 'neo');
+  return {
+    description: `Avatar preview for "${personality}" (procedural). Connect Higgsfield for live Soul/FLUX portraits.`,
+    themeConfig: theme.themeConfig,
+  };
+}
+
+/** Compatibility helpers for older call sites expecting themeConfig only */
+export type { BoardThemeConfig };

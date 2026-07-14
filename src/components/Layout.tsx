@@ -44,7 +44,10 @@ export function Layout({ activeTab, onTabChange, children }: LayoutProps) {
       </header>
       <main className="app-main">{children}</main>
       <footer className="app-footer">
-        <span>Built on chess.js · react-chessboard · Stockfish</span>
+        <span>Built on chess.js · react-chessboard · Stockfish · Higgsfield</span>
+        <a href="./legacy/index.html" className="legacy-link">
+          3D Hartwig legacy mode
+        </a>
         <span>Colorado Springs, CO</span>
       </footer>
     </div>

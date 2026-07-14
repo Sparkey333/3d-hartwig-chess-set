@@ -15,6 +15,9 @@ import {
 } from '../lib/chessEngine';
 import { initStockfish, getBestMove, analyzePosition, isEngineReady } from '../lib/stockfish';
 import { AnalysisPanel } from './AnalysisPanel';
+import { loadActiveTheme } from '../services/themeAlternatives';
+import { saveGame, savePrefs, loadPrefs } from '../lib/persistence';
+import { ErrorBoundary } from './ErrorBoundary';
 
 interface ChessGameProps {
   variant: VariantId;
@@ -23,10 +26,12 @@ interface ChessGameProps {
 
 export function ChessGame({ variant, onExit }: ChessGameProps) {
   const variantDef = VARIANTS.find((v) => v.id === variant)!;
+  const prefs = loadPrefs();
   const [state, setState] = useState<ExtendedGameState>(() => createGame(variant));
-  const [orientation, setOrientation] = useState<'white' | 'black'>('white');
-  const [vsEngine, setVsEngine] = useState(true);
-  const [engineLevel, setEngineLevel] = useState(5);
+  const [orientation, setOrientation] = useState<'white' | 'black'>(prefs.orientation ?? 'white');
+  const [vsEngine, setVsEngine] = useState(prefs.vsEngine ?? true);
+  const [engineLevel, setEngineLevel] = useState(prefs.engineLevel ?? 5);
+  const boardTheme = loadActiveTheme();
   const [timeControl] = useState(TIME_CONTROLS[2]);
   const [whiteTime, setWhiteTime] = useState(timeControl.initial);
   const [blackTime, setBlackTime] = useState(timeControl.initial);
@@ -40,6 +45,21 @@ export function ChessGame({ variant, onExit }: ChessGameProps) {
   useEffect(() => {
     initStockfish();
   }, []);
+
+  useEffect(() => {
+    savePrefs({ engineLevel, vsEngine, orientation });
+  }, [engineLevel, vsEngine, orientation]);
+
+  useEffect(() => {
+    saveGame({
+      fen,
+      variant,
+      history: state.chess.history(),
+      checksWhite: state.checksWhite,
+      checksBlack: state.checksBlack,
+      savedAt: new Date().toISOString(),
+    });
+  }, [fen, variant, state.checksWhite, state.checksBlack, state.chess]);
 
   useEffect(() => {
     if (showAnalysis && isEngineReady()) {
@@ -135,13 +155,26 @@ export function ChessGame({ variant, onExit }: ChessGameProps) {
     } : {}),
   };
 
+  const boardStyles = boardTheme
+    ? {
+        lightSquareStyle: { backgroundColor: boardTheme.lightSquare },
+        darkSquareStyle: { backgroundColor: boardTheme.darkSquare },
+      }
+    : {};
+
   return (
-    <div className="game-layout">
+    <ErrorBoundary fallbackTitle="Board failed to render">
+    <div className="game-layout" role="region" aria-label={`${variantDef.name} game`}>
       <div className="game-sidebar">
         <div className="game-meta">
           <span className={`mode-badge mode-${variantDef.mode}`}>{variantDef.mode}</span>
           <h2>{variantDef.name}</h2>
           <p>{variantDef.tagline}</p>
+          {boardTheme && (
+            <p className="theme-active-label" aria-live="polite">
+              Theme: {boardTheme.boardLabel}
+            </p>
+          )}
         </div>
 
         <div className="clock-panel">
@@ -156,15 +189,22 @@ export function ChessGame({ variant, onExit }: ChessGameProps) {
         </div>
 
         {variant === 'threeCheck' && (
-          <div className="check-counter">
+          <div className="check-counter" aria-live="polite">
             <div>White checks: {state.checksWhite}/3</div>
             <div>Black checks: {state.checksBlack}/3</div>
           </div>
         )}
 
+        {variant === 'crazyhouse' && (
+          <div className="check-counter" aria-label="Crazyhouse reserves">
+            <div>White reserve: {state.crazyhouseReserves.w.join(' ') || '—'}</div>
+            <div>Black reserve: {state.crazyhouseReserves.b.join(' ') || '—'}</div>
+          </div>
+        )}
+
         <div className="move-history">
           <h3>Moves</h3>
-          <ol>
+          <ol aria-live="polite">
             {state.chess.history().map((m, i) => (
               <li key={i}>{m}</li>
             ))}
@@ -201,7 +241,7 @@ export function ChessGame({ variant, onExit }: ChessGameProps) {
         {gameOver && <div className="game-over-banner">{gameOver}</div>}
       </div>
 
-      <div className="board-area">
+      <div className="board-area" aria-label="Chess board">
         <Chessboard
           options={{
             position: fen,
@@ -211,6 +251,7 @@ export function ChessGame({ variant, onExit }: ChessGameProps) {
             animationDurationInMs: variantDef.mode === 'neo' ? 180 : 120,
             showNotation: true,
             allowDragging: !gameOver,
+            ...boardStyles,
           }}
         />
         {variant === 'neoFog' && (
@@ -222,5 +263,6 @@ export function ChessGame({ variant, onExit }: ChessGameProps) {
         <AnalysisPanel lines={engineLines} fen={fen} onClose={() => setShowAnalysis(false)} />
       )}
     </div>
+    </ErrorBoundary>
   );
 }

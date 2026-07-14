@@ -17,17 +17,19 @@ A next-generation chess platform combining the best open-source chess libraries 
 ### Clubs & Competitions
 Find real OTB chess clubs and USCF-rated tournaments, with Colorado Springs as the default location. Data sourced from CSCA, Chess Tournament Guide, and local club listings.
 
-### Premium (Higgsfield AI)
-- AI board skin generator
-- Neo Coach game review
-- Opening Lab AI
-- Cinematic game replays
-- AI opponent avatars
+### Premium AI (Higgsfield + alternatives)
+- **Higgsfield** board themes / avatars / cinematic replay via server proxy (`/api/ai/*`)
+- **Procedural** offline theme generator (no API key)
+- **Curated** Hartwig-inspired skins (classic, marble, flat, wireframe, neo glass, …)
 
-Set `HIGGSFIELD_API_KEY` to enable live AI generation.
+```bash
+# Server-only credentials (never VITE_ — SDK blocks browsers)
+export HF_CREDENTIALS="KEY_ID:KEY_SECRET"
+npm run dev
+```
 
 ### Legacy
-The original [3D Hartwig chess set](legacy/) by @JulianGarnier is preserved in `/legacy`.
+The original [3D Hartwig chess set](legacy/) by @JulianGarnier is preserved in `/legacy` and linked from the app footer (`/legacy/index.html`).
 
 ## Quick Start
 
@@ -38,12 +40,19 @@ npm run dev
 
 Open http://localhost:5173
 
-## Build
-
 ```bash
-npm run build
+npm test          # Vitest unit tests
+npm run build     # production build
 npm run preview
 ```
+
+## Mac desktop package
+
+```bash
+npm run pack:mac
+```
+
+Artifacts land in `Downloads/` and `public/downloads/`.
 
 ## Research Insights
 

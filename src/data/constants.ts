@@ -300,7 +300,7 @@ export const PREMIUM_FEATURES: PremiumFeature[] = [
     description: 'Generate custom board themes and piece sets from a text prompt via Higgsfield AI.',
     provider: 'higgsfield',
     tier: 'pro',
-    available: false,
+    available: true,
   },
   {
     id: 'ai-coach',
@@ -308,7 +308,7 @@ export const PREMIUM_FEATURES: PremiumFeature[] = [
     description: 'Higgsfield-powered voice and visual coaching. See your blunders with cinematic replay.',
     provider: 'higgsfield',
     tier: 'pro',
-    available: false,
+    available: true,
   },
   {
     id: 'ai-opening-lab',
@@ -340,7 +340,7 @@ export const PREMIUM_FEATURES: PremiumFeature[] = [
     description: 'Higgsfield-generated animated opponents with personality and trash talk (optional).',
     provider: 'higgsfield',
     tier: 'elite',
-    available: false,
+    available: true,
   },
   {
     id: 'puzzle-gen',
@@ -356,7 +356,7 @@ export const PREMIUM_FEATURES: PremiumFeature[] = [
     description: 'AI-directed camera moves, highlight reels, and shareable clips for social media.',
     provider: 'higgsfield',
     tier: 'elite',
-    available: false,
+    available: true,
   },
 ];
 

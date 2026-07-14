@@ -25,6 +25,11 @@ var closestElement = null;
 var white = "White";
 var black = "Black";
 
+function setTransform(el, value) {
+  el.style.webkitTransform = value;
+  el.style.transform = value;
+}
+
 function checkTouch() {
   var d = document.createElement("div");
   d.setAttribute("ontouchmove", "return;");
@@ -86,7 +91,7 @@ function dragPiece(event) {
       newX  = -(grabbedX+distX);
       newY  = -(grabbedY+distY);
     }
-    grabbed.style.webkitTransform = "translateX(" + newX + "px) translateY(" + newY + "px) translateZ(2px)";
+    setTransform(grabbed, "translateX(" + newX + "px) translateY(" + newY + "px) translateZ(2px)");
     highLight(grabbed, square);
   }
 }
@@ -112,7 +117,7 @@ function dropPiece(event) {
       chess.move({ from: grabbedID, to: squareEndPos, promotion: 'q' });
     } else {
       hideMoves(grabbedID);
-      grabbed.style.webkitTransform = "translateX(0px) translateY(0px) translateZ(2px)";
+      setTransform(grabbed, "translateX(0px) translateY(0px) translateZ(2px)");
     }
     updateBoard();
     grabbed.classList.remove("grabbed");
@@ -136,7 +141,7 @@ function moveScene(event) {
     eventDistY = (eventMoveY - eventStartY);
     eventX = sceneY - (eventDistX*-.03);
     eventY = sceneX - (eventDistY*-.03);
-    scene.style.webkitTransform = 'RotateX('+ eventY + 'deg) RotateZ('+ eventX + 'deg)';
+    setTransform(scene, 'RotateX('+ eventY + 'deg) RotateZ('+ eventX + 'deg)');
     for(var i=0; i<sphere.length; i++) {
       updateSphere(sphere[i],eventY,eventX);
     }
@@ -334,14 +339,14 @@ function highLight(element, square) {
 }
 
 function updateView(sceneXAngle,sceneZAngle) {
-  scene.style.webkitTransform = "rotateX( " + sceneXAngle + "deg) rotateZ( " + sceneZAngle + "deg)";
+  setTransform(scene, "rotateX( " + sceneXAngle + "deg) rotateZ( " + sceneZAngle + "deg)");
   for(var i=0; i<sphere.length; i++) {
     updateSphere(sphere[i],sceneXAngle,sceneZAngle);
   }
 }
 
 function updateSphere(sphere,sceneXAngle,sceneZAngle) {
-  sphere.style.WebkitTransform = "rotateZ( " + ( - sceneZAngle ) + "deg ) rotateX( " + ( - sceneXAngle ) + "deg )";
+  setTransform(sphere, "rotateZ( " + ( - sceneZAngle ) + "deg ) rotateX( " + ( - sceneXAngle ) + "deg )");
 }
 
 function renderPoly() {
