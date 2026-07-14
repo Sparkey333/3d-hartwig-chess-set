@@ -5,3 +5,8 @@ dist
 .env
 .env.*
 !.env.example
+release/
+Downloads/*.dmg
+Downloads/*.zip
+public/downloads/*.dmg
+public/downloads/*.zip

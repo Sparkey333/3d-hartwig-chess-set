@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Crown, MapPin, Sparkles, BookOpen, Gamepad2 } from 'lucide-react';
+import { Crown, MapPin, Sparkles, BookOpen, Gamepad2, Home } from 'lucide-react';
 import type { Tab } from '../App';
 
 interface LayoutProps {
@@ -9,6 +9,7 @@ interface LayoutProps {
 }
 
 const TABS: { id: Tab; label: string; icon: typeof Gamepad2 }[] = [
+  { id: 'landing', label: 'Home', icon: Home },
   { id: 'play', label: 'Play', icon: Gamepad2 },
   { id: 'variants', label: 'Variants', icon: Crown },
   { id: 'clubs', label: 'Clubs', icon: MapPin },

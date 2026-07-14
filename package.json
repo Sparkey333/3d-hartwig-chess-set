@@ -3,10 +3,13 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
+  "main": "desktop-app/main.mjs",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "desktop": "electron .",
+    "pack:mac": "bash scripts/build-mac-dmg.sh"
   },
   "dependencies": {
     "chess.js": "^1.4.0",
@@ -20,7 +23,24 @@
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",
     "@vitejs/plugin-react": "^4.4.1",
+    "electron": "^43.1.0",
+    "electron-builder": "^26.15.3",
     "typescript": "~5.8.3",
     "vite": "^6.3.5"
+  },
+  "build": {
+    "appId": "app.neochess.desktop",
+    "productName": "Neo Chess",
+    "directories": {
+      "output": "release/electron"
+    },
+    "files": [
+      "dist/**/*",
+      "desktop-app/**/*"
+    ],
+    "mac": {
+      "category": "public.app-category.games",
+      "target": ["dmg", "zip"]
+    }
   }
 }
